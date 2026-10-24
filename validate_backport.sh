@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KERNEL_DIR="${KERNEL_DIR:~$HOME/linux}"
+KERNEL_DIR="${KERNEL_DIR:-$HOME/linux}"
 PATCH_DIR="$SCRIPT_DIR/patches"
 
 if [ ! -d "$KERNEL_DIR" ]; then

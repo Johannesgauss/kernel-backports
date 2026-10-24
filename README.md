@@ -36,6 +36,8 @@ If any conflict, investigate it and do the proper adaptations
 
 So, I applied the patch `patches/0001-powerpc-irq-Fix-build-with-CONFIG_PROC_FS-n.patch` to test this situation.
 
+## Real CVE test: CVE-2024-41059 (fs/hfsplus)
+* Context: HFS+ means Hierarchical File System Plus, also known as Mac OS Extended: an Apple filesystem used until 2017. So, inside fs/hfsplus/xattr.c file (eXtended ATTRibutes, system file metadata), the hfsplus_listxattr was using kmalloc to allocate memory and keeping it under strbuf variable. So Syzbot KMSAN detected an uninitialized memory read (`uninit-value in sized_strscpy`) in `copy_name` (`fs/hfsplus/xattr.c`). Basically, `strbuf` was allocated with `kmalloc()`, which means it wasn't zeroed: information disclosure. `kmalloc()` was replaced by `kzalloc()` and the patch was applied against Linux 5.15 LTS.
 
 ## Packaging:
 Just do:

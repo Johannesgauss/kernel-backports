@@ -5,11 +5,13 @@ Summary:	Linux kernel powerpc/irq compiling fix
 License:	GPLv2
 
 Source0:	linux-%{version}.tar.xz
-Patch001:	0001-powerpc-irq-Fix-build-with-CONFIG_PROC_FS-n.Patch001
+Patch0001:	0001-powerpc-irq-Fix-build-with-CONFIG_PROC_FS-n.patch
+Patch0002:	0002-hfsplus-fix-uninit-value-in-copy_name.patch
 
 %prep
 %setup -q
-%patch001 -p1
+%patch0001 -p1
+%patch0002 -p1
 
 %build
 make olddefconfig
