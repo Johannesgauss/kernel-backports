@@ -4,7 +4,8 @@ This repo documents the process of patch applying from the upstream kernel devel
 
 ## Tree:
 - `patches/`: generated through `git format-patch`.
-- `validate_backport.sh`: Simple script that runs the official linux kernel's`checkpatch.pl`.
+- `validate_backport.sh`: Simple script that runs the official linux kernel's `checkpatch.pl`.
+- `packaging`: RPM `kernel.spec`.
 
 ## How does that work
 1. Find the upstream correction commit
@@ -26,7 +27,7 @@ If any conflict, investigate it and do the proper adaptations
     ```bash
     cat /proc/interrupts
     ```
-    It'll show how many times each IRQ triggered a interrupt. To do it, it needs arch_show_interrupts() function (arch is basically for architecture dependent things. Yeah, you learn a lot doing a kernel). Basically, a guy used the function irq_proc_emit_counts() in it (which is inside kernel/irq/proc.c). The problem: in embedded systems, you can compile it without /proc (CONFIG_PROC_FS=n). So, naturally it wasn't compiling.
+    It'll show how many times each IRQ triggered an interrupt. To do it, it needs arch_show_interrupts() function (arch is basically for architecture dependent things. Yeah, you learn a lot doing a kernel). Basically, a guy used the function irq_proc_emit_counts() in it (which is inside kernel/irq/proc.c). The problem: in embedded systems, you can compile it without /proc (CONFIG_PROC_FS=n). So, naturally it wasn't compiling.
     The patch was simple: just add
     ```c
     #ifdef CONFIG_PROC_FS
@@ -34,3 +35,14 @@ If any conflict, investigate it and do the proper adaptations
 (I really love C preprocessor)
 
 So, I applied the patch `patches/0001-powerpc-irq-Fix-build-with-CONFIG_PROC_FS-n.patch` to test this situation.
+
+
+## Packaging:
+Just do:
+```bash
+rpmbuild -ba packaging/rpm/kernel.spec
+```
+or
+```
+make bindeb-pkg -j$(nproc)
+```
