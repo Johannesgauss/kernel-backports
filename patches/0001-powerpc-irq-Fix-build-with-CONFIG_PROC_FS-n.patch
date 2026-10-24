@@ -1,0 +1,49 @@
+From 4169c9c90532df9585c0a2ae513337a58f5e59ab Mon Sep 17 00:00:00 2001
+From: Sasha Levin <sashal@kernel.org>
+Date: Fri, 23 Oct 2026 17:15:03 -0400
+Subject: [PATCH] powerpc/irq: Fix build with CONFIG_PROC_FS=n
+
+Commit fbb22ceaaf8f ("powerpc/irq: Make irqstats array based") made
+arch_show_interrupts() call irq_proc_emit_counts(). That function lives
+in kernel/irq/proc.c, which is only built with CONFIG_PROC_FS, so
+kernels without procfs no longer link:
+
+  powerpc64-linux-ld: arch/powerpc/kernel/irq.o: in function `arch_show_interrupts':
+  arch/powerpc/kernel/irq.c:134:(.text+0x4b8c): undefined reference to `irq_proc_emit_counts'
+
+arch_show_interrupts() is only called from irq_seq_show(), which is in
+kernel/irq/proc.c as well, so build it only with CONFIG_PROC_FS, as x86
+already does.
+
+Fixes: fbb22ceaaf8f ("powerpc/irq: Make irqstats array based")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202609271531.8kf2NTjK-lkp@intel.com/
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ arch/powerpc/kernel/irq.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/powerpc/kernel/irq.c b/arch/powerpc/kernel/irq.c
+index bce546931a..55bcf0326f 100644
+--- a/arch/powerpc/kernel/irq.c
++++ b/arch/powerpc/kernel/irq.c
+@@ -122,6 +122,7 @@ void inc_irq_stat_and_enable(enum irq_stat_counts which)
+ 	set_bit(which, irq_stat_count_show);
+ }
+ 
++#ifdef CONFIG_PROC_FS
+ int arch_show_interrupts(struct seq_file *p, int prec)
+ {
+ 	const struct irq_stat_info *info = irq_stat_info;
+@@ -155,6 +156,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
+ #endif
+ 	return 0;
+ }
++#endif /* CONFIG_PROC_FS */
+ 
+ static int __init irq_init_stats(void)
+ {
+-- 
+2.47.3
+
